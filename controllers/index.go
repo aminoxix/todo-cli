@@ -2,13 +2,15 @@ package controllers
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"todo/data"
 	models "todo/models"
-	appUtils "todo/utils"
+	utils "todo/utils"
 )
 
 type model struct {
@@ -17,6 +19,7 @@ type model struct {
 	continued bool
 }
 
+// C for create
 func Insert(todo models.Todo) models.Todo {
 	crazyModels := []model{
 		{
@@ -25,7 +28,7 @@ func Insert(todo models.Todo) models.Todo {
 			continued: true,
 		},
 		{
-			text:     "Is it completed?",
+			text:     "Is it completed? (yes/no) ",
 			function: checkCompletion,
 			continued: true,
 		},
@@ -91,7 +94,141 @@ func checkCompletion(todo models.Todo) models.Todo {
 }
 
 func saveTodo(todo models.Todo) models.Todo {
-	todo.ID = int(appUtils.Utils().Int64())
-	data.Todos = append(data.Todos, todo)
+	todo.ID = int(utils.Utils().Int64())
+	
+	var todos []models.Todo
+	var isFileExist bool
+	_, err := os.Stat("./data/todos.json")
+	if os.IsNotExist(err) {
+    	isFileExist = false
+	} else {
+		isFileExist = true
+	}
+	if isFileExist {
+		content := ViewAll()
+		if len(content) == 0 {
+			todos = append(ViewAll(), data.Todos...)
+			} else {
+			todos = ViewAll()
+		}
+	} else {
+		file, err := os.Create("./data/todos.json")
+		if err != nil {
+			panic(err)
+		}
+		file.Close()
+	}
+	data.Todos = append(todos, todo)
 	return todo
+}
+
+// R for read all
+func ViewAll()[]models.Todo {
+	var todos []models.Todo
+	readJson, err := os.ReadFile("./data/todos.json")
+	if err != nil {
+		panic(err)
+	}
+	checkValid := json.Valid(readJson)
+	if checkValid {
+		json.Unmarshal(readJson, &todos)
+	}
+	return todos
+}
+
+type updateModel struct {
+    text      string
+    function  func() []models.Todo
+    continued bool
+}
+
+// U for update
+func Update(id int) {
+    crazyModels := []updateModel{
+        {
+            text: "Here's your todos:",
+            function: func() []models.Todo {
+                return ViewAll()
+            },
+            continued: true,
+        },
+        {
+            text: "Enter ID to edit:",
+            function: updateTodo,
+            continued: true,
+        },
+        {
+            text: "Thanks for update!",
+            function: func() []models.Todo {
+                return ViewAll()
+            },
+            continued: false,
+        },
+    }
+
+    for _, value := range crazyModels {
+        fmt.Println(value.text)
+        value.function()
+
+        if !value.continued {
+            break
+        }
+    }
+}
+
+func updateTodo() []models.Todo {
+    reader := bufio.NewReader(os.Stdin)
+    idInput, err := reader.ReadString('\n')
+    if err != nil {
+        panic(err)
+    }
+    idString := strings.TrimSpace(idInput)
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Enter updated task title:")
+	taskInput, err := reader.ReadString('\n')
+	if err != nil {
+			panic(err)
+		}
+	task := strings.TrimSpace(taskInput)
+
+	data.Todos = ViewAll()
+
+    for i := range data.Todos {
+        if data.Todos[i].ID == id {
+            data.Todos[i].Task = task
+            break
+        }
+    }
+
+    fmt.Println("todo updated successfully!")
+    return data.Todos
+}
+
+// D for delete
+func Delete() {
+	data.Todos = ViewAll()
+	fmt.Println("Here's your todos:", data.Todos)
+
+	fmt.Println("Enter todo ID you want to remove:")
+	reader := bufio.NewReader(os.Stdin)
+    idInput, err := reader.ReadString('\n')
+    if err != nil {
+        panic(err)
+    }
+    idString := strings.TrimSpace(idInput)
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		panic(err)
+	}
+
+	for i := range data.Todos {
+		if data.Todos[i].ID == id {
+			data.Todos = append(data.Todos[:i], data.Todos[i+1:]...)
+			fmt.Println("todo removed successfully!")
+		}
+	}
 }

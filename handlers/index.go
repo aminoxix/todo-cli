@@ -1,16 +1,22 @@
 package handlers
 
 import (
-	"fmt"
 	"todo/controllers"
-	"todo/data"
 	models "todo/models"
 )
 
-func Insert() {
-	var todo models.Todo
-
+func Insert(todo models.Todo) {
 	controllers.Insert(todo)
+}
 
-	fmt.Println("all todos from handlers:", data.Todos)
+func ViewAll() {
+	controllers.ViewAll()
+}
+
+func Update(id int) {
+	controllers.Update(id)
+}
+
+func Delete() {
+	controllers.Delete()
 }
