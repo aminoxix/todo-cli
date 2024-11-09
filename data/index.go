@@ -1,5 +1,5 @@
-package appData
+package data
 
-import appTypes "todo/types"
+import models "todo/models"
 
-var Todos []appTypes.Todo
+var Todos []models.Todo

@@ -2,21 +2,15 @@ package handlers
 
 import (
 	"fmt"
-
 	"todo/controllers"
-	appData "todo/data"
-	appTypes "todo/types"
+	"todo/data"
+	models "todo/models"
 )
 
 func Insert() {
-	var todo appTypes.Todo
+	var todo models.Todo
 
-	insertedTodo := controllers.Insert(todo)
+	controllers.Insert(todo)
 
-	todos :=  append(appData.Todos, insertedTodo)
-
-	// fmt.Println("all todos", todos)
-	// fmt.Println("todo from handler", insertedTodo)
-
-	fmt.Println("all", todos)
+	fmt.Println("all todos from handlers:", data.Todos)
 }

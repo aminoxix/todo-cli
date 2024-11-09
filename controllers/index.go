@@ -6,144 +6,92 @@ import (
 	"log"
 	"os"
 	"strings"
-	appTypes "todo/types"
+	"todo/data"
+	models "todo/models"
 	appUtils "todo/utils"
 )
 
-type model[] struct {
-	text string
-	function func(todo appTypes.Todo) appTypes.Todo
+type model struct {
+	text     string
+	function func(todo models.Todo) models.Todo
 	continued bool
 }
 
-type completedModel struct {
-    choices  []string           // items on the to-do list
-    cursor   int                // which to-do list item our cursor is pointing at
-    selected map[int]struct{}   // which to-do items are selected
-}
-
-var task string
-var checked bool
-
-func Insert(todo appTypes.Todo) appTypes.Todo {
-	crazyModels := model{
+func Insert(todo models.Todo) models.Todo {
+	crazyModels := []model{
 		{
-			text: "Enter your task?",
+			text:     "Enter your task?",
 			function: inputTask,
 			continued: true,
 		},
 		{
-			text: "Is it completed?",
+			text:     "Is it completed?",
 			function: checkCompletion,
 			continued: true,
 		},
 		{
-			text: "Thanks! Your response follows:",
-			function: Insert,
+			text:     "Thanks for your response!",
+			function: saveTodo,
 			continued: false,
 		},
 	}
 
+	var choice string
 	for _, value := range crazyModels {
-		if value.continued {
-			fmt.Println(value.text)
-			value.function(todo)
-			// fmt.Printf("%d:\n text: %v\n function: %v\n continued: %v\n", key, value.text, value.function(), value.continued)
-			continue
+		fmt.Println(value.text)
+		todo = value.function(todo)
+
+		if !value.continued {
+			fmt.Printf("Do you want to continue? (yes/no) ")
+			reader := bufio.NewReader(os.Stdin)
+			input, err := reader.ReadString('\n')
+			if err != nil {
+				log.Fatal("no input provided!")
+			}
+			choice = strings.TrimSpace(input)
+			break
 		}
 	}
 
-	// fmt.Println(appUtils.Utils())
-
-	// s := "Enter your task?"
-	// fmt.Println(s)
-	// reader := bufio.NewReader(os.Stdin)
-	// input, err := reader.ReadString('\n')
-	// if err != nil {
-	// 	log.Fatal("no input provided!")
-	// }
-	// task := strings.TrimSpace(input)
-
-	// m := completedModel{
-	// 	choices: []string{"yes", "no"},
-	// 	selected: make(map[int]struct{}),
-	// }
-
-	// var isChecked bool
-
-	// s = "Is it completed?"
-	// fmt.Println(s)
-	// // Iterate over our choices
-    // for i, choice := range m.choices {
-
-    //     // Is the cursor pointing at this choice?
-    //     cursor := " " // no cursor
-    //     if m.cursor == i {
-    //         cursor = ">" // cursor!
-    //     }
-
-    //     // Is this choice selected?
-    //     checked := " " // not selected
-    //     if _, ok := m.selected[i]; ok {
-    //         checked = "x" // selected!
-    //     }
-
-	// 	isChecked = checked == "yes"
-
-    //     // Render the row
-    //     s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
-    // }
-
-    // // The footer
-    // s += "\nPress q to quit.\n"
-
-    // // Send the UI for rendering
-
-	todo.ID = int(appUtils.Utils().Int64())
-	todo.Task = task
-	todo.Checked = checked
-
-	fmt.Println("todo from ctrls", todo)
-	return todo
+	if choice == "yes" || choice == "y" {
+		return Insert(todo)
+	} else {
+		return todo
+	}
 }
 
-func inputTask(todo appTypes.Todo) appTypes.Todo {
+func inputTask(todo models.Todo) models.Todo {
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	if err != nil {
 		log.Fatal("no input provided!")
 	}
-	task = strings.TrimSpace(input)
-
-	return appTypes.Todo{
-		Task: task,
-	}
+	todo.Task = strings.TrimSpace(input)
+	return todo
 }
 
-func checkCompletion(todo appTypes.Todo) appTypes.Todo {
+func checkCompletion(todo models.Todo) models.Todo {
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
-	
 	if err != nil {
 		log.Fatal("no input provided!")
 	}
 
 	checkCheck := strings.TrimSpace(input)
-
 	switch checkCheck {
-		case "yes", "y":
-			checked = true
-		case "no", "n":
-			checked = false
-		default:
-			checked = true
+	case "yes", "y":
+		todo.Checked = true
+	case "no", "n":
+		todo.Checked = false
+	default:
+		todo.Checked = true
 	}
 
-	return appTypes.Todo{
-		Checked: checked,
-	}
+	return todo
 }
 
-// func Delete(todoId int) {
-
-// }
+func saveTodo(todo models.Todo) models.Todo {
+	todo.ID = int(appUtils.Utils().Int64())
+	data.Todos = append(data.Todos, todo)
+	return todo
+}
