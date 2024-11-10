@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"todo/data"
-	"todo/handlers"
-	"todo/models"
+	"todo/cmd/handlers"
+	"todo/shared/data"
+	// "todo/shared/models"
 	// "github.com/gorilla/mux"
 )
 
@@ -22,8 +22,8 @@ func main() {
 	// router.HandleFunc("/", serveHome)
 	// log.Fatal(http.ListenAndServe(":8080", router))
 
-	var todo models.Todo
-	var id int
+	// var todo models.Todo
+	// var id int
 
 	fmt.Printf(`
 
@@ -45,19 +45,22 @@ d: Delete a todo
 
 	switch formattedInput {
 	case "c":
-		handlers.Insert(todo)
+		handlers.Insert()
 	case "r":
 		handlers.ViewAll()
 	case "u":
-		handlers.Update(id)
+		handlers.Update()
 	case "d":
 		handlers.Delete()
 	default:
 		handlers.ViewAll()
 	}
 
+	// init
+	data.Todos = handlers.ViewAll()
+
 	// create file
-	file, err := os.Create("./data/todos.json")
+	file, err := os.Create("./shared/data/todos.json")
 	if err != nil {
 		panic(err)
 	}
@@ -67,7 +70,7 @@ d: Delete a todo
 		panic(err)
 	}
 	// write file
-	os.WriteFile("./data/todos.json", finalJson, 0644)
+	os.WriteFile("./shared/data/todos.json", finalJson, 0644)
 	// file close
 	file.Close()
 
