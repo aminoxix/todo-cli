@@ -94,21 +94,22 @@ func checkCompletion(todo models.Todo) models.Todo {
 }
 
 func saveTodo(todo models.Todo) models.Todo {
-	todo.ID = int(utils.Utils().Int64())
-	
-	var todos []models.Todo
 	var isFileExist bool
+	var todos []models.Todo
+
+	todo.ID = int(utils.Utils().Int64())
+
 	_, err := os.Stat("./data/todos.json")
 	if os.IsNotExist(err) {
     	isFileExist = false
 	} else {
 		isFileExist = true
 	}
+
 	if isFileExist {
-		content := ViewAll()
-		if len(content) == 0 {
-			todos = append(ViewAll(), data.Todos...)
-			} else {
+		if len(data.Todos) != 0 {
+			todos = data.Todos
+		} else {
 			todos = ViewAll()
 		}
 	} else {
@@ -118,7 +119,9 @@ func saveTodo(todo models.Todo) models.Todo {
 		}
 		file.Close()
 	}
+
 	data.Todos = append(todos, todo)
+	fmt.Println("todos", data.Todos)
 	return todo
 }
 
@@ -133,6 +136,7 @@ func ViewAll()[]models.Todo {
 	if checkValid {
 		json.Unmarshal(readJson, &todos)
 	}
+	fmt.Println(todos)
 	return todos
 }
 
