@@ -9,9 +9,10 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"todo/cmd/handlers"
-	"todo/shared/data"
-	// "todo/shared/models"
+
+	"github.com/aminoxix/todo-cli/cmd/handlers"
+	"github.com/aminoxix/todo-cli/shared/data"
+	// "github.com/aminoxix/todo-cli/shared/models"
 	// "github.com/gorilla/mux"
 )
 
@@ -53,28 +54,27 @@ d: Delete a todo
 	case "d":
 		handlers.Delete()
 	default:
-		handlers.ViewAll()
+		panic("invalid input")
 	}
 
-	// init
-	data.Todos = handlers.ViewAll()
+	if formattedInput != "r" {
+		// create file
+		file, err := os.Create("./shared/data/todos.json")
+		if err != nil {
+			panic(err)
+		}
+		// for indentation
+		finalJson, err := json.MarshalIndent(data.Todos, "", "\t")
+		if err != nil {
+			panic(err)
+		}
+		// write file
+		os.WriteFile("./shared/data/todos.json", finalJson, 0644)
+		// file close
+		file.Close()
 
-	// create file
-	file, err := os.Create("./shared/data/todos.json")
-	if err != nil {
-		panic(err)
+		fmt.Println("writing todos file...", data.Todos)
 	}
-	// for indentation
-	finalJson, err := json.MarshalIndent(data.Todos, "", "\t")
-	if err != nil {
-		panic(err)
-	}
-	// write file
-	os.WriteFile("./shared/data/todos.json", finalJson, 0644)
-	// file close
-	file.Close()
-
-	fmt.Println("writing todos file...", data.Todos)
 }
 
 func serveHome(w http.ResponseWriter, r *http.Request) {

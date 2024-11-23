@@ -8,9 +8,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"todo/shared/data"
-	models "todo/shared/models"
-	utils "todo/shared/utils"
+
+	"github.com/aminoxix/todo-cli/shared/data"
+	models "github.com/aminoxix/todo-cli/shared/models"
+	utils "github.com/aminoxix/todo-cli/shared/utils"
 )
 
 // insert structure
@@ -147,6 +148,7 @@ func Delete() {
 		if data.Todos[i].ID == id {
 			data.Todos = append(data.Todos[:i], data.Todos[i+1:]...)
 			fmt.Println("todo removed successfully!")
+			break
 		}
 	}
 }
@@ -229,18 +231,47 @@ func updateTodo() []models.Todo {
 		panic(err)
 	}
 
-	fmt.Println("Enter updated task title:")
-	taskInput, err := reader.ReadString('\n')
+	fmt.Println(`What do you want to update?
+[1] Task
+[2] Status
+[3] Both`)
+
+	updateInput, err := reader.ReadString('\n')
 	if err != nil {
-			panic(err)
-		}
-	task := strings.TrimSpace(taskInput)
+		panic(err)
+	}
+	updateChoice := strings.TrimSpace(updateInput)
+
+	
+	var task string 
+	var status string  
+
+	switch updateChoice {
+	case "1":
+		task = updateTask()
+	case "2":
+		status = updateStatus()
+	case "3":
+		task = updateTask()
+		status = updateStatus()
+	default:
+		panic("invalid input")
+		
+	}
 
 	data.Todos = ViewAll()
 
+
     for i := range data.Todos {
         if data.Todos[i].ID == id {
+			if task == "" {
+				task = data.Todos[i].Task
+			}
+			if status == "" {
+				status = strconv.FormatBool(data.Todos[i].Checked)
+			} 
             data.Todos[i].Task = task
+			data.Todos[i].Checked = status == "true" || status == "yes" || status == "y"
             break
         }
     }
@@ -248,4 +279,29 @@ func updateTodo() []models.Todo {
     fmt.Println("todo updated successfully!")
     return data.Todos
 }
+
+func updateTask() string {
+    reader := bufio.NewReader(os.Stdin)
+
+	fmt.Println("Enter updated task title:")
+	taskInput, err := reader.ReadString('\n')
+	if err != nil {
+		panic(err)
+	}
+	task := strings.TrimSpace(taskInput)
+	return task
+}
+		
+func updateStatus() string {
+    reader := bufio.NewReader(os.Stdin)
+
+	fmt.Println("Is it completed? (yes/no)")
+	statusInput, err := reader.ReadString('\n')
+	if err != nil {
+		panic(err)
+	}
+	status := strings.TrimSpace(statusInput)
+	return status
+}
+
 // utils ends here

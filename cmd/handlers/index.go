@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"todo/cmd/controllers"
-	"todo/shared/models"
-	// models "todo/shared/models"
+	"github.com/aminoxix/todo-cli/cmd/controllers"
+	"github.com/aminoxix/todo-cli/shared/models"
+	// models "github.com/aminoxix/todo-cli/shared/models"
 )
 
 func Insert() models.Todo {

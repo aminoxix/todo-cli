@@ -1,5 +1,5 @@
 package data
 
-import models "todo/shared/models"
+import models "github.com/aminoxix/todo-cli/shared/models"
 
 var Todos []models.Todo
